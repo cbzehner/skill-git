@@ -38,7 +38,7 @@ Advanced git workflows. Trigger-driven, layered on Claude Code defaults.
 | **Large PR / split request** | User asks to split a PR, stack changes, OR PR touches 5+ files across multiple concerns | Changes are cohesive (many files in one concern is fine) | Medium | Suggest & confirm | `stack-prs.md` |
 | **Parallel work needed** | User needs to switch context (hotfix, urgent bug, different feature) without losing current work | Simple branch switch with clean working tree | Low | Suggest & confirm | `parallel-worktrees.md` |
 | **Merge conflict** | `git status` shows unmerged paths, or rebase/merge aborted with conflict markers | -- | High | Auto-activate (inform) | `resolve-conflicts.md` |
-| **Bad rewrite recovery** | User says "I messed up", "lost my changes", history looks wrong, OR unexpected diff in range-diff output | -- | High | Auto-activate (inform) | `recover-from-mistake.md` |
+| **Bad rewrite recovery** | User says "I messed up", "lost my changes", "committed to wrong branch", history looks wrong, OR unexpected diff in range-diff output | -- | High | Auto-activate (inform) | `recover-from-mistake.md` |
 | **First activation in repo** | Any trigger fires for the first time in a repo | -- | None | Inform | Config check (below) |
 
 ### Escalation Levels

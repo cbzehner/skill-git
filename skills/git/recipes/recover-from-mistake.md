@@ -1,7 +1,7 @@
 # Recipe: Recover From Mistake
 
 ## When to use
-Rebase went wrong, commits appear lost, history looks unexpected, range-diff showed unexpected changes.
+Rebase went wrong, commits appear lost, history looks unexpected, range-diff showed unexpected changes, or committed to the wrong branch.
 
 ## Escalation
 Auto-activate (inform) -- this is an existing problem state.
@@ -40,6 +40,37 @@ Auto-activate (inform) -- this is an existing problem state.
   ```bash
   git branch -D ai-backup/<branch>-<timestamp>
   ```
+
+## Committed to the wrong branch
+
+Committed to `main` (or another branch) when the work belongs on a feature branch.
+
+### Move last N commits to a new branch
+```bash
+# Create the new branch at current HEAD (keeps the commits)
+git branch correct-branch
+
+# Reset the current branch back, removing the commits from it
+git reset --hard HEAD~N
+
+# Switch to the correct branch
+git checkout correct-branch
+```
+
+### Move last N commits to an existing branch
+```bash
+# Note the SHAs of the commits to move
+git log --oneline -N
+
+# Reset the current branch
+git reset --hard HEAD~N
+
+# Switch and cherry-pick
+git checkout existing-branch
+git cherry-pick <sha1> <sha2> ...
+```
+
+**Key:** Use `--soft` reset if you want to keep changes staged (useful if you want to re-commit differently). Use `--hard` if the commits are complete and you're moving them as-is.
 
 ## Failure modes
 
