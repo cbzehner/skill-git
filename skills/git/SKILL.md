@@ -1,12 +1,32 @@
 ---
 name: git
-description: Advanced git workflows -- stacking, absorb, bisect, worktrees, conflict resolution, commit hygiene. Trigger-driven, layered on defaults.
+description: Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.
+argument-hint: "[workflow or situation description]"
 allowed-tools: Bash, Read, Glob, Grep
 ---
 
 # Git
 
-Advanced git workflows. Activates for stacking, absorb, bisect, worktrees, conflict resolution, and commit hygiene. Does NOT activate for basic operations (commit, push, pull, branch, checkout, simple merge) -- those stay with Claude Code defaults.
+Advanced git workflows. Trigger-driven, layered on Claude Code defaults.
+
+## When to Use
+
+- User mentions stacking, splitting a PR, or breaking up a large PR
+- User addressed PR review feedback and needs to distribute fixes into prior commits
+- User says "when did this break", "this used to work", or is debugging a regression
+- About to create a PR with messy/WIP commits that need cleanup
+- User needs to work on something else without losing context (worktree)
+- Merge conflict encountered during rebase or merge
+- User says they messed up a rebase or lost changes
+- Any of the above, even if the user doesn't explicitly name the technique
+
+## When NOT to Use
+
+- Basic commit, push, pull, branch, checkout, simple merge — these stay with Claude Code defaults
+- User is writing new code (not restructuring history)
+- Simple branch switch with a clean working tree (no worktree needed)
+- PR with clean, logical commits already (no cleanup needed)
+- User explicitly says they don't want history rewriting
 
 ## Trigger Table
 
@@ -135,3 +155,33 @@ git branch --list 'ai-backup/*' | xargs git branch -D
 - Tool overrides: `tools/*.md` -- enhanced commands loaded in addition to recipes when tools are detected
 
 Read recipes and tool overrides on demand when a trigger fires. Do not load them all upfront.
+
+## Dynamic Context
+
+On activation, gather current state:
+
+```bash
+git branch --show-current
+git log --oneline -10
+git status --short
+git log --oneline origin/main..HEAD 2>/dev/null || echo "no remote tracking"
+```
+
+This tells you: current branch, recent commits (for style detection and cleanup signals), working tree state, and how many unpushed commits exist (draft/public boundary).
+
+## Examples
+
+**User says:** "I just addressed the review comments, want me to push?"
+**Action:** Trigger post-review fixup. Check if changes should be absorbed into prior commits rather than added as a new "address review" commit. Load `fixup-history.md`.
+
+**User says:** "This PR is getting huge, should I split it?"
+**Action:** Trigger large PR / split. Load `stack-prs.md`. Analyze commits for logical boundaries.
+
+**User says:** "The login tests were passing last week but now they fail"
+**Action:** Trigger regression debugging. Suggest bisect before speculating. Load `bisect-regression.md`.
+
+**User says:** "I need to fix a prod bug but I'm in the middle of this feature"
+**Action:** Trigger parallel work. Suggest worktree instead of stash. Load `parallel-worktrees.md`.
+
+**User says:** "I messed up the rebase and my commits are gone"
+**Action:** Auto-activate recovery. Load `recover-from-mistake.md`. Check for backup branches first, then reflog.
