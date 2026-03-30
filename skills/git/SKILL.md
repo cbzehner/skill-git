@@ -7,7 +7,7 @@ allowed-tools: Bash, Read, Glob, Grep
 
 # Git
 
-Advanced git workflows. Trigger-driven, layered on Claude Code defaults.
+Advanced git workflows. Trigger-driven, layered on top of the host agent's default git handling.
 
 ## When to Use
 
@@ -22,7 +22,7 @@ Advanced git workflows. Trigger-driven, layered on Claude Code defaults.
 
 ## When NOT to Use
 
-- Basic commit, push, pull, branch, checkout, simple merge — these stay with Claude Code defaults
+- Basic commit, push, pull, branch, checkout, simple merge — these stay with the host agent's default behavior
 - User is writing new code (not restructuring history)
 - Simple branch switch with a clean working tree (no worktree needed)
 - PR with clean, logical commits already (no cleanup needed)
