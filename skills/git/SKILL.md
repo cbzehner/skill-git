@@ -2,7 +2,10 @@
 name: git
 description: Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.
 argument-hint: "[workflow or situation description]"
+arguments:
+  - workflow
 license: MIT
+effort: medium
 allowed-tools: Bash Read Glob Grep
 ---
 
