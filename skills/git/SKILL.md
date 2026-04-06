@@ -11,8 +11,6 @@ allowed-tools: Bash Read Glob Grep
 
 # Git
 
-Advanced git workflows. Trigger-driven, layered on top of the host agent's default git handling.
-
 ## When to Use
 
 - User mentions stacking, splitting a PR, or breaking up a large PR
@@ -22,66 +20,44 @@ Advanced git workflows. Trigger-driven, layered on top of the host agent's defau
 - User needs to work on something else without losing context (worktree)
 - Merge conflict encountered during rebase or merge
 - User says they messed up a rebase or lost changes
-- Any of the above, even if the user doesn't explicitly name the technique
 
 ## When NOT to Use
 
-- Basic commit, push, pull, branch, checkout, simple merge — these stay with the host agent's default behavior
-- User is writing new code (not restructuring history)
-- Simple branch switch with a clean working tree (no worktree needed)
-- PR with clean, logical commits already (no cleanup needed)
-- User explicitly says they don't want history rewriting
+- Basic git operations (commit, push, pull, branch, checkout, simple merge) — host agent handles these
+- User is writing new code, not restructuring history
+- User explicitly declines history rewriting
 
 ## Trigger Table
 
-| Trigger | Observable Signals | Excluded Signals | Risk | Escalation | Recipe |
-|---------|-------------------|-----------------|------|------------|--------|
-| **Post-review fixup** | Staged/unstaged changes exist AND current branch has an open PR with review comments | User is in initial implementation (no PR yet) | Low | Suggest & confirm | `fixup-history.md` |
-| **Messy history before PR** | About to create PR AND commits match cleanup signals: "wip", "fix", "tmp", "squash me", "address review", duplicated prefixes, or 5+ commits that could be logically grouped | PR already exists (this is a push, not creation) | Medium | Suggest & confirm | `clean-commits.md` + `fixup-history.md` |
-| **Regression debugging** | User says "when did this break", "this used to work", test was passing before, or is debugging behavior that changed | Bug is in new code the user just wrote (no regression, just a bug) | Low | Suggest & confirm | `bisect-regression.md` |
-| **Large PR / split request** | User asks to split a PR, stack changes, OR PR touches 5+ files across multiple concerns | Changes are cohesive (many files in one concern is fine) | Medium | Suggest & confirm | `stack-prs.md` |
-| **Parallel work needed** | User needs to switch context (hotfix, urgent bug, different feature) without losing current work | Simple branch switch with clean working tree | Low | Suggest & confirm | `parallel-worktrees.md` |
-| **Merge conflict** | `git status` shows unmerged paths, or rebase/merge aborted with conflict markers | -- | High | Auto-activate (inform) | `resolve-conflicts.md` |
-| **Bad rewrite recovery** | User says "I messed up", "lost my changes", "committed to wrong branch", history looks wrong, OR unexpected diff in range-diff output | -- | High | Auto-activate (inform) | `recover-from-mistake.md` |
-| **First activation in repo** | Any trigger fires for the first time in a repo | -- | None | Inform | Config check (below) |
+| Trigger | Signals | Recipe |
+|---------|---------|--------|
+| **Post-review fixup** | Changes exist + open PR with review comments | `fixup-history.md` |
+| **Messy history before PR** | About to create PR + commits contain "wip", "fix", "tmp", "squash me", "address review", duplicated prefixes, or 5+ groupable commits | `clean-commits.md` + `fixup-history.md` |
+| **Regression debugging** | "when did this break", "this used to work", test was passing before | `bisect-regression.md` |
+| **Large PR / split** | User asks to split/stack, OR PR touches 5+ files across multiple concerns | `stack-prs.md` |
+| **Parallel work needed** | User needs to switch context without losing current work | `parallel-worktrees.md` |
+| **Merge conflict** | `git status` shows unmerged paths or conflict markers | `resolve-conflicts.md` |
+| **Bad rewrite recovery** | "I messed up", "lost my changes", "committed to wrong branch", unexpected range-diff | `recover-from-mistake.md` |
 
-### Escalation Levels
+### Escalation
 
-- **Auto-activate (inform):** Load the recipe and begin guiding. For reactive situations (conflicts, lost work).
-- **Suggest & confirm:** Propose the action and wait for user approval. Never act unilaterally on history rewrites or structural changes.
-- **Inform:** Provide information (config recommendations) without suggesting action.
+- **Conflicts and recovery:** Auto-activate and begin guiding (reactive situations).
+- **Everything else:** Suggest & confirm. Never act unilaterally on history rewrites.
 
 ## Tool Detection
 
-On first activation, detect available tools. Cache results for the session.
+On first activation, check for enhanced tools: `git-absorb`, `gt` (Graphite), `wt` (worktrunk), and `git --version` (need 2.38+ for `--update-refs`). Cache results for the session.
 
-```bash
-command -v git-absorb 2>/dev/null           # absorb
-command -v gt 2>/dev/null                   # Graphite
-command -v spr 2>/dev/null                  # spr
-command -v wt 2>/dev/null                   # worktrunk
-git --version                               # need 2.38+ for --update-refs
-```
+If an enhanced tool is detected, load its override file alongside the recipe:
+- `tools/absorb.md` → `recipes/fixup-history.md`
+- `tools/graphite.md` → `recipes/stack-prs.md`
+- `tools/worktrunk.md` → `recipes/parallel-worktrees.md`
 
-### Routing
-
-Load the recipe for the triggered workflow. If an enhanced tool is detected, also load its tool override file. The override replaces specific steps in the recipe with enhanced equivalents.
-
-| Domain | Recipe | Tool override (if detected) |
-|--------|--------|-----------------------------|
-| Fix distribution | `recipes/fixup-history.md` | `tools/absorb.md` |
-| Stacking | `recipes/stack-prs.md` | `tools/graphite.md` |
-| Worktrees | `recipes/parallel-worktrees.md` | `tools/worktrunk.md` |
-| Bisect | `recipes/bisect-regression.md` | -- |
-| Conflicts | `recipes/resolve-conflicts.md` | -- |
-| Commit cleanup | `recipes/clean-commits.md` | -- |
-| Recovery | `recipes/recover-from-mistake.md` | -- |
-
-**No tools found:** All workflows work with native git. Recommend `git-absorb` as the biggest QoL win (`cargo install git-absorb`). Mention Graphite and worktrunk as optional. Never block on a missing tool.
+All workflows work with native git. Never block on a missing tool. Recommend `git-absorb` as the biggest QoL win if not installed.
 
 ## One-Time Repo Config Check
 
-On first activation in a repo, check these settings:
+On first activation, check and suggest missing settings:
 
 ```bash
 git config --get merge.conflictStyle    # want: zdiff3
@@ -92,100 +68,53 @@ git config --get rebase.autoStash       # want: true
 git config --get pull.rebase            # want: true
 ```
 
-If any are missing, suggest a single command block to fix all at once. Offer once, respect the answer.
+Suggest a single command block to fix all missing. Offer once, respect the answer.
 
-### Signing Validation
+If `commit.gpgsign=true` is set, verify the signing key works. Never suggest enabling signing if not already configured.
 
-If `commit.gpgsign=true` is set, verify the signing key is configured and working (`git config --get user.signingkey`). If signing is enabled but broken (key expired, agent not running), warn and offer to troubleshoot or skip. Never suggest enabling signing if it is not already configured.
-
-### Security Audit
-
-- `core.hooksPath` -- note if a custom hooks path is set (hook behavior is outside the skill's control)
-- `credential.helper` -- verify a credential helper is configured if pushing to remotes
-- Warn if the hooks directory contains scripts the user may not be aware of
+Note `core.hooksPath` if set (custom hooks are outside skill control). Verify `credential.helper` is configured if pushing to remotes.
 
 ## Core Policies
 
-Always active. Non-negotiable safety rules.
+Non-negotiable safety rules, always active.
 
+<!-- WHY: Model default is --force; this prevents overwriting others' work -->
 ### 1. Force-Push Safety
-
-NEVER use `git push --force`. Always use `git push --force-with-lease --force-if-includes`. This prevents overwriting others' work even on "your" branch.
+NEVER `git push --force`. Always `git push --force-with-lease --force-if-includes`.
 
 ### 2. Force-Push Authorization
-
-Before any force-push, check:
-
-- Does the branch exist on the remote? (`git ls-remote --heads origin <branch>`)
-- Does the branch have an open PR with reviews or comments? (`gh pr view <branch> --json reviews,comments`)
-- Are there commits from other authors? (`git log --format='%ae' origin/main..<branch> | sort -u`)
-
-If any of these indicate shared work, warn the user and require explicit confirmation. If none apply (local-only or solo unreviewed branch), proceed with `--force-with-lease`.
-
-### 3. Pre-Destructive Backup
-
-Before any rebase, reset, or history rewrite, create a backup:
-
+Before any force-push, check for shared work:
 ```bash
-BACKUP_BRANCH="ai-backup/$(git branch --show-current)-$(date +%Y%m%d-%H%M%S)"
-git branch "$BACKUP_BRANCH"
+git ls-remote --heads origin <branch>
+gh pr view <branch> --json reviews,comments
+git log --format='%ae' origin/main..<branch> | sort -u
 ```
+If any indicate shared work, warn and require explicit confirmation.
 
-Mention it to the user: "Created backup at `ai-backup/<branch>-<timestamp>`. Run `git reset --hard ai-backup/<branch>-<timestamp>` if anything goes wrong."
+<!-- WHY: Core safety net — recipes reference this as "per policy 3" -->
+### 3. Pre-Destructive Backup
+Before any rebase, reset, or history rewrite:
+```bash
+git branch "ai-backup/$(git branch --show-current)-$(date +%Y%m%d-%H%M%S)"
+```
+Tell the user. Prune old backups with `git branch --list 'ai-backup/*' | xargs git branch -D`.
 
 ### 4. Verify After Rewrite
-
-After every rebase or history surgery, run `git range-diff` against the pre-rewrite state. If something unexpected changed, flag it before proceeding.
+Run `git range-diff` against pre-rewrite state after every rebase or history surgery. Flag unexpected changes before proceeding.
 
 ### 5. Independent Commits Commute
+Independent commits (different files/lines) commute freely. Dependent commits (overlapping lines) must maintain order.
 
-When reordering commits in interactive rebase, identify which are independent (touch different files/lines) and which are dependent (touch overlapping lines). Reorder independents freely; maintain order for dependents.
-
-### 6. Commit Messages Are Review Artifacts
-
-The agent knows *why* the change was made. That context belongs in the commit body. Include: what prompted the change, what approach was taken and why.
-
-### 7. Backup Cleanup
-
-Backup branches prefixed with `ai-backup/` are recovery points. Old backups can be pruned:
-
-```bash
-git branch --list 'ai-backup/*' | xargs git branch -D
-```
-
-## References
-
-- Recipes: `recipes/*.md` -- full native git workflows, loaded on demand per trigger
-- Tool overrides: `tools/*.md` -- enhanced commands loaded in addition to recipes when tools are detected
-
-Read recipes and tool overrides on demand when a trigger fires. Do not load them all upfront.
+### 6. Commit Messages
+Include *why* the change was made in the commit body — the agent has this context and should preserve it.
 
 ## Dynamic Context
 
-On activation, gather current state:
-
-```bash
-git branch --show-current
-git log --oneline -10
-git status --short
-git log --oneline origin/main..HEAD 2>/dev/null || echo "no remote tracking"
-```
-
-This tells you: current branch, recent commits (for style detection and cleanup signals), working tree state, and how many unpushed commits exist (draft/public boundary).
+On activation, gather: current branch, recent commits (`git log --oneline -10`), working tree state (`git status --short`), and unpushed commits (`git log --oneline origin/main..HEAD`).
 
 ## Examples
 
-**User says:** "I just addressed the review comments, want me to push?"
-**Action:** Trigger post-review fixup. Check if changes should be absorbed into prior commits rather than added as a new "address review" commit. Load `fixup-history.md`.
+<!-- WHY: Subtle routing — "push?" after review should trigger fixup, not literal push -->
+**"I just addressed the review comments, want me to push?"** → Trigger post-review fixup. Check if changes should be absorbed into prior commits rather than added as a new "address review" commit.
 
-**User says:** "This PR is getting huge, should I split it?"
-**Action:** Trigger large PR / split. Load `stack-prs.md`. Analyze commits for logical boundaries.
-
-**User says:** "The login tests were passing last week but now they fail"
-**Action:** Trigger regression debugging. Suggest bisect before speculating. Load `bisect-regression.md`.
-
-**User says:** "I need to fix a prod bug but I'm in the middle of this feature"
-**Action:** Trigger parallel work. Suggest worktree instead of stash. Load `parallel-worktrees.md`.
-
-**User says:** "I messed up the rebase and my commits are gone"
-**Action:** Auto-activate recovery. Load `recover-from-mistake.md`. Check for backup branches first, then reflog.
+**"I messed up the rebase and my commits are gone"** → Auto-activate recovery. Check for backup branches first, then reflog.

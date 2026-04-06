@@ -1,16 +1,8 @@
 # Tool Override: Graphite
 
-## Detection
-```bash
-command -v gt 2>/dev/null
-```
-
-## Install
-```bash
-npm i -g @withgraphite/graphite-cli && gt auth
-```
-
 ## Overrides for stack-prs.md
+
+Detection: `command -v gt 2>/dev/null`. Install: `npm i -g @withgraphite/graphite-cli && gt auth`.
 
 Replace manual branch creation and PR management:
 
@@ -33,85 +25,19 @@ gt stack submit  # pushes all, creates/updates PRs
 
 ### After review feedback
 
-**CHECKPOINT: Pre-restack audit (mandatory)**
+Same checkpoint rules as stack-prs.md (audit state, confirm, backup, verify). Use Graphite commands:
 
-Before running `gt stack restack`, display the full stack state:
+1. Audit: `gt log` (shows stack with PR/CI status)
+2. Restack: `gt stack restack`
+3. Verify: `git range-diff`
 
-```bash
-# 1. Show stack visualization with PR and CI status
-gt log
+### Submitting
 
-# 2. List branches that will be affected
-gt log --json 2>/dev/null || gt log
-```
-
-- Show every branch in the stack and its current PR/CI status
-- List all branches that will be force-pushed after restacking
-- If any branch has reviews, comments, or commits from other authors (per SKILL.md policy 2), warn explicitly
-- **Require explicit user confirmation before proceeding**
-
-Only after confirmation:
-1. Create backup branches for the stack (per SKILL.md policy 3)
-2. Run the restack:
-   ```bash
-   gt stack restack
-   ```
-3. Verify with `git range-diff` (per SKILL.md policy 4)
-
-**CHECKPOINT: Pre-submit divergence check (mandatory)**
-
-Before running `gt stack submit` (especially with `--force`):
-
-```bash
-# Check which branches have diverged from remote
-for branch in $(gt log --json 2>/dev/null | jq -r '.[].branch' 2>/dev/null || gt log); do
-  if git ls-remote --heads origin "$branch" 2>/dev/null | grep -q .; then
-    local_sha=$(git rev-parse "$branch" 2>/dev/null)
-    remote_sha=$(git rev-parse "origin/$branch" 2>/dev/null)
-    if [ "$local_sha" != "$remote_sha" ]; then
-      echo "  DIVERGED: $branch"
-    fi
-  fi
-done
-```
-
-- Display which branches have diverged from remote
-- For `--force` submits, **confirm each diverged branch before proceeding**
-- Always verify the PR diff after submit: `gh pr diff <number>`
-
-Then submit:
-```bash
-gt stack submit   # updates all PRs
-```
+Before `gt stack submit`, check divergence per stack-prs.md checkpoint rules. For `--force` submits, confirm each diverged branch. Verify PR diffs after: `gh pr diff <number>`.
 
 ### Landing
 
-**CHECKPOINT: Pre-land verification (mandatory)**
-
-Before running `gt stack land`:
-
-```bash
-# 1. Show stack with CI status
-gt log
-
-# 2. Verify CI on all PRs in the stack
-gh pr list --head "$(git branch --show-current)" --json number,statusCheckRollup,mergeable \
-  --jq '.[] | "PR #\(.number): mergeable=\(.mergeable) checks=\([ .statusCheckRollup[] | .conclusion // .status ] | join(", "))"'
-```
-
-- If any PR has failing CI checks, **warn and list failures** — do not proceed without explicit acknowledgment
-- Confirm merge order is bottom-up (Graphite handles this, but verify): display the planned order
-- **Require explicit user confirmation before proceeding**
-
-Only after confirmation:
-```bash
-gt stack land
-```
-
-### Visualize
-```bash
-gt log  # shows stack with branches, PRs, status
-```
+Before `gt stack land`, verify CI on all PRs (`gt log`). Confirm merge order is bottom-up. Graphite handles ordering but verify.
 
 ## Failure Recovery
 
@@ -165,7 +91,4 @@ If a PR was merged out of order (e.g., via GitHub UI instead of `gt stack land`)
    ```
 5. Verify each PR diff is clean: `gh pr diff <number>`
 
-## When NOT to use
-- Not on GitHub (Graphite is GitHub-only)
-- User prefers native git workflow
-- Single PR (no stack needed)
+Graphite is GitHub-only. Skip if user prefers native git or has a single PR.

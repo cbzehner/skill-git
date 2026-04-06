@@ -1,14 +1,6 @@
 # Tool Override: git-absorb
 
-## Detection
-```bash
-command -v git-absorb 2>/dev/null
-```
-
-## Install
-```bash
-cargo install git-absorb
-```
+Detection: `command -v git-absorb 2>/dev/null`. Install: `cargo install git-absorb`.
 
 ## Overrides for fixup-history.md
 

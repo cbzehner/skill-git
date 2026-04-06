@@ -1,11 +1,5 @@
 # Recipe: Bisect Regression
 
-## When to use
-Something used to work and now doesn't. Before speculating about the cause, let bisect find the exact commit.
-
-## Escalation
-Suggest & confirm — propose bisect and wait for user approval before starting.
-
 ## Steps
 1. Identify boundaries:
    - Bad: `HEAD` (current broken state)
@@ -33,17 +27,17 @@ Suggest & confirm — propose bisect and wait for user approval before starting.
 5. Report the guilty commit with its diff and message.
 
 ## Key rules for bisect scripts
-- **Self-contained** — working tree changes per commit, script must not depend on it
-- **Place in /tmp** — use absolute path, never inside the repo
-- **Exit codes matter** — 0=good, 1-124=bad, 125=skip
-- **Specific test** — test the exact broken behavior, not the full suite
+- **Self-contained** -- working tree changes per commit, script must not depend on it
+- **Place in /tmp** -- use absolute path, never inside the repo
+- **Exit codes matter** -- 0=good, 1-124=bad, 125=skip
+- **Specific test** -- test the exact broken behavior, not the full suite
 
 ## Failure modes
-| Failure | Cause | Fix |
-|---------|-------|-----|
-| Build fails on old commits | Dependencies or tooling changed | Use `exit 125` to skip untestable commits |
-| Test script not self-contained | Script references files in working tree | Move all logic into `/tmp/bisect-test.sh` with no repo-relative paths |
-| Wrong good/bad boundaries | Regression older than assumed | Widen the range with an earlier known-good commit |
+| Failure | Fix |
+|---------|-----|
+| Build fails on old commits (deps/tooling changed) | Use `exit 125` to skip untestable commits |
+| Script references files in working tree | Move all logic into `/tmp/bisect-test.sh` with no repo-relative paths |
+| Regression older than assumed | Widen the range with an earlier known-good commit |
 
 ## Cleanup
 Always run `git bisect reset` to return to original state. Remove `/tmp/bisect-test.sh`.

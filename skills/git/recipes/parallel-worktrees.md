@@ -1,11 +1,5 @@
 # Recipe: Parallel Worktrees
 
-## When to use
-Need to switch context without losing current work. Hotfix mid-feature. Parallel tasks.
-
-## Escalation
-Suggest & confirm.
-
 ## Steps (native git)
 ```bash
 # Create a worktree for a new branch
@@ -39,12 +33,9 @@ Replace manual commands with:
 - Merge workflow: squash, rebase, merge, and clean up in one command
 
 ## Failure modes
+| Failure | Fix |
+|---------|-----|
+| Port conflicts (multiple dev servers) | Set `PORT` env var per worktree |
+| Branch already checked out error | Remove or switch the other worktree first, or create a new branch |
 
-| Failure | Cause | Fix |
-|---------|-------|-----|
-| Port conflicts | Multiple worktrees running dev servers on same port | Set `PORT` env var per worktree |
-| Forgetting to remove worktree | Done with task but worktree left behind | Always `git worktree remove` when done; periodically run `git worktree prune` |
-| Branch already checked out error | Branch is checked out in another worktree | Remove or switch the other worktree first, or create a new branch |
-
-## Cleanup
-Always remove worktrees when done. Never leave orphaned worktrees. Prune stale references with `git worktree prune`.
+Always remove worktrees when done. Prune stale references with `git worktree prune`.

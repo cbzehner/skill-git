@@ -1,14 +1,6 @@
 # Tool Override: worktrunk
 
-## Detection
-```bash
-command -v wt 2>/dev/null
-```
-
-## Install
-```bash
-cargo install worktrunk
-```
+Detection: `command -v wt 2>/dev/null`. Install: `cargo install worktrunk`.
 
 ## Overrides for parallel-worktrees.md
 

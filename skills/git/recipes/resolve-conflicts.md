@@ -1,13 +1,7 @@
 # Recipe: Resolve Conflicts
 
-## When to use
-Conflict markers encountered during rebase, merge, or cherry-pick. `git status` shows unmerged paths.
-
 ## Scope (v1)
 Rebase conflicts during history rewriting + generated file regeneration. Exotic types (rename/rename, binary, symlink) are out of scope -- provide status and let the user decide.
-
-## Escalation
-Auto-activate (inform) -- conflicts are an existing problem state.
 
 ## zdiff3 marker format
 Requires `merge.conflictStyle = zdiff3`. Four sections:
@@ -65,12 +59,12 @@ Verify all three:
 3. `git diff` -- review final state matches expected outcome
 
 ## Failure modes
-| Failure | Signal | Fix |
-|---------|--------|-----|
-| Many files in conflict (>3) | `git status` shows 4+ unmerged paths | Stop. Present list to user and ask for prioritization |
-| Lockfile merge garbage | Conflict markers in package-lock.json, Cargo.lock, etc. | Accept one side, regenerate (see generated files section) |
-| rerere wrong resolution | Tests fail after auto-resolution, or diff looks wrong | `git checkout -m <file>` to restore conflict markers, resolve manually |
-| Exotic conflict type | rename/rename, binary, symlink in `git status` | Report status to user, let them decide |
+| Failure | Fix |
+|---------|-----|
+| Many files in conflict (>3) | Stop. Present list to user and ask for prioritization |
+| Lockfile merge garbage | Accept one side, regenerate (see generated files section) |
+| rerere wrong resolution (tests fail after auto-resolution) | `git checkout -m <file>` to restore conflict markers, resolve manually |
+| Exotic conflict type (rename/rename, binary, symlink) | Report status to user, let them decide |
 
 ## Status
 Return on completion:

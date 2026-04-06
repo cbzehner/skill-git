@@ -1,11 +1,5 @@
 # Recipe: Stack PRs
 
-## When to use
-Work touches multiple concerns that should be reviewed independently, or a PR is too large.
-
-## Escalation
-Suggest & confirm — never restructure branches without approval.
-
 ## Steps (native git, requires Git 2.38+)
 
 ### Creating a stack from scratch
@@ -25,7 +19,7 @@ Suggest & confirm — never restructure branches without approval.
 
 ### Splitting an existing branch
 1. Create backup branch (per SKILL.md policy 3)
-2. `git rebase -i main` — reorder commits by concern
+2. `git rebase -i main` -- reorder commits by concern
 3. Note SHA boundaries between concerns
 4. Create branches at split points:
    ```bash
@@ -41,7 +35,7 @@ Suggest & confirm — never restructure branches without approval.
 Before running `git rebase --update-refs`, gather and display the full stack state:
 
 ```bash
-# 1. Visualize the stack: branch → PR → CI status
+# 1. Visualize the stack: branch -> PR -> CI status
 for branch in $(git branch --list 'feat/*' --format='%(refname:short)'); do
   pr_info=$(gh pr view "$branch" --json number,title,statusCheckRollup,state \
     --jq '"PR #\(.number) [\(.state)] \(.title) — checks: \(.statusCheckRollup | map(.conclusion // .status) | join(", "))"' 2>/dev/null || echo "no PR")
@@ -108,14 +102,14 @@ Display divergence summary. For each diverged branch:
 Before merging any PR in the stack:
 
 ```bash
-# 1. Verify CI status on ALL PRs
+# Verify CI status on ALL PRs
 for branch in $(git branch --list 'feat/*' --format='%(refname:short)'); do
   gh pr view "$branch" --json number,statusCheckRollup,mergeable \
     --jq '"PR \(.number): mergeable=\(.mergeable) checks=\([ .statusCheckRollup[] | .conclusion // .status ] | join(", "))"' 2>/dev/null
 done
 ```
 
-- If any PR has failing checks, **warn and list failures** — do not proceed without explicit acknowledgment
+- If any PR has failing checks, **warn and list failures** -- do not proceed without explicit acknowledgment
 - Confirm merge order is bottom-up (base branch first): display the planned order
 - **Require explicit user confirmation of the merge order**
 
@@ -146,8 +140,6 @@ git rebase --abort
 
 ### Accidentally force-pushed wrong branch
 
-If you force-pushed a branch that wasn't part of the stack, or pushed stale content:
-
 1. **Check reflog for the pre-push state**:
    ```bash
    git reflog show origin/<branch>
@@ -170,16 +162,16 @@ If a dependent PR was merged before its base (wrong order):
    git checkout feat/orphaned-branch
    git rebase origin/main
    ```
-3. Resolve any conflicts (expected — the base PR's changes are now in main via a different path)
+3. Resolve any conflicts (expected -- the base PR's changes are now in main via a different path)
 4. Force-push the rebased branch: `git push --force-with-lease --force-if-includes`
 5. Verify the PR diff is clean: `gh pr diff <number>`
 
 ## Failure modes
-| Failure | Cause | Fix |
-|---------|-------|-----|
-| Conflict during restack | Overlapping changes between stacked branches | Resolve conflicts, `git rebase --continue`, then re-run `--update-refs` |
-| Orphaned branches | Base branch merged but dependents not rebased | Rebase orphaned branches onto updated main |
-| Wrong merge order | Merged a dependent before its base | Rebase the dependent onto main, resolve conflicts, re-push |
+| Failure | Fix |
+|---------|-----|
+| Conflict during restack (overlapping changes) | Resolve conflicts, `git rebase --continue`, then re-run `--update-refs` |
+| Orphaned branches (base merged, dependents not rebased) | Rebase orphaned branches onto updated main |
+| Wrong merge order | Rebase the dependent onto main, resolve conflicts, re-push |
 
 ## Cleanup
 Remove merged branches: `git branch -d feat/db-schema feat/api`. Prune stale remote references: `git fetch --prune`.
