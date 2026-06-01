@@ -1,0 +1,28 @@
+{
+  "name": "git",
+  "version": "1.0.0",
+  "description": "Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.",
+  "author": {
+    "name": "cbzehner",
+    "url": "https://github.com/cbzehner"
+  },
+  "homepage": "https://github.com/cbzehner/skill-git",
+  "repository": "https://github.com/cbzehner/skill-git",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "agent-skill"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Git",
+    "shortDescription": "Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user ment...",
+    "longDescription": "Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.",
+    "developerName": "cbzehner",
+    "category": "Development",
+    "capabilities": [
+      "Development"
+    ],
+    "websiteURL": "https://github.com/cbzehner/skill-git"
+  }
+}

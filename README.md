@@ -1,83 +1,58 @@
 # Git
 
-Advanced git workflows for Claude Code. Stacking, absorb, bisect, worktrees, conflict resolution, and commit hygiene -- trigger-driven, layered on top of defaults.
+Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.
 
-> *Native git is first-class. Enhanced tools are optional power-ups.*
+## Skill
 
-## Why Use This?
+This repository packages one portable agent skill:
 
-- **Trigger-driven**: Activates at the right moment -- post-review fixup, messy history, regression debugging, merge conflicts
-- **Detect and adapt**: Finds installed tools (git-absorb, Graphite, worktrunk) and uses them when available
-- **Safety-first**: Every destructive operation gets a backup branch, force-push always uses `--force-with-lease`
-- **Native git works**: Every workflow works with plain git. No extra tools required.
+- `git` - Advanced git workflows — absorb, stacking, bisect, worktrees, conflict resolution, commit cleanup. Use when user mentions stacking PRs, split PR, fixup, absorb, bisect, regression, worktree, rebase conflict, messy commits, clean up history, or when creating a PR with WIP commits. Also triggers on merge conflicts and bad rebase recovery.
 
-## Prerequisites
+The canonical skill body lives at `skills/git/SKILL.md`. Keep behavior changes there; keep this README focused on installation and packaging.
 
-All optional. The skill works with native git alone.
+## Install
 
-| Tool | Install | Enhances |
-|------|---------|----------|
-| **git-absorb** | `cargo install git-absorb` | Distributing review fixes into prior commits |
-| **Graphite** | `npm i -g @withgraphite/graphite-cli && gt auth` | Stacked PRs and stack management |
-| **worktrunk** | `cargo install worktrunk` | Worktree management and parallel work |
-
-Requires git 2.38+ for `--update-refs` support in stacking workflows.
-
-## Installation
-
-### From Marketplace
+Clone the repository, then run the installer:
 
 ```bash
-# Add the marketplace
-/plugin marketplace add cbzehner/skill-git
-
-# Install the skill
-/plugin install git@cbzehner
+git clone https://github.com/cbzehner/skill-git.git
+cd skill-git
+./install.sh all
 ```
 
-### Manual Installation
+Install targets:
 
-Clone into your `.claude/skills/` directory:
+- `./install.sh claude` -> `~/.claude/skills/git`
+- `./install.sh codex` -> `~/.codex/skills/git`
+- `./install.sh agents` -> `~/.agents/skills/git` for generic agent harnesses such as Pi/Hermes-style setups
+- `./install.sh opencode` -> `~/.config/opencode/skills/git`
+- `./install.sh all --copy` copies files instead of symlinking
 
-```bash
-cd ~/.claude/skills/
-git clone https://github.com/cbzehner/skill-git.git git
-```
+Manual installation is just a symlink or copy from `skills/git` into your agent's skills directory.
 
-## Usage
+## Compatibility
 
-The skill activates automatically for advanced git tasks:
+This repo uses the common `skills/<name>/SKILL.md` layout so agents that understand file-based skills can load it directly. Host-specific metadata is included where useful:
 
-```
-You: I need to distribute these review fixes into the right commits
-You: Clean up this branch history before I create a PR
-You: This test used to pass -- when did it break?
-You: Split this PR into a stack
-You: I need to work on a hotfix without losing my current work
-You: I messed up this rebase, help me recover
-```
+- Claude Code: `.claude-plugin/plugin.json` and direct `~/.claude/skills` install
+- Codex CLI: `.codex-plugin/plugin.json` with `skills: "./skills/"` and direct `~/.codex/skills` install
+- Other agents: direct install to the agent's skills directory; unsupported frontmatter fields can be ignored
 
-Basic git operations (commit, push, pull, branch, checkout) stay with Claude Code defaults.
+Some skills mention optional host tools such as `Task`, `Agent`, `Skill`, MCP tools, or browser automation CLIs. On hosts that do not provide those tools, adapt to equivalent local capabilities and keep the same workflow intent.
 
-## Files
+## Public Safety
 
-```
-git/
-├── SKILL.md                    # Main skill definition (triggers, policies, safety, config)
-├── recipes/
-│   ├── fixup-history.md        # Distribute review fixes into prior commits
-│   ├── stack-prs.md            # Split work into stacked PRs
-│   ├── bisect-regression.md    # Automated binary search for regressions
-│   ├── resolve-conflicts.md    # Rebase conflicts + generated file regeneration
-│   ├── clean-commits.md        # Reorder, squash, commit message hygiene
-│   ├── parallel-worktrees.md   # Isolated parallel work
-│   └── recover-from-mistake.md # Reflog, undo log, backup branches
-├── tools/
-│   ├── absorb.md               # git-absorb overrides for fixup distribution
-│   ├── graphite.md             # Graphite overrides for stacking
-│   └── worktrunk.md            # worktrunk overrides for worktrees
-├── README.md                   # This file
-└── LICENSE                     # MIT
+These repositories are public. Do not commit organization-specific instructions, private repository names, secrets, tokens, cookies, raw session logs, customer data, or machine-local paths. Use environment variables and generic paths in examples.
+
+## Repository Layout
+
+```text
+.claude-plugin/plugin.json   # Claude plugin metadata
+.codex-plugin/plugin.json    # Codex plugin metadata
+install.sh                   # Symlink/copy installer for common agent skill dirs
+skills/git/SKILL.md
+README.md
+LICENSE
 ```
 
 ## License
