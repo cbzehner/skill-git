@@ -1,3 +1,5 @@
+> **Moved:** this skill now lives in [cbzehner/skills](https://github.com/cbzehner/skills) under `skills/git/`. This repo is archived and read-only.
+
 # Git
 
 Handle advanced git workflows without turning history into a mess. The skill covers stacking, fixups, absorb, bisect, worktrees, conflict recovery, and PR cleanup.
